@@ -1,5 +1,9 @@
 # SimKuliah Auto Attendance Bot
 
+**Kalau terbantu, kasi star plis karena star bikin developer merasa dihargai (dan semangat maintain code-nya , cape jir).**
+
+> *"Karena mahasiswa yang baik adalah mahasiswa yang hadir, tapi mahasiswa yang genius adalah yang bikin bot untuk hadir sambil rebahan (masi aja ada orang yang bayar untuk jasa absen online)"*
+
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)
