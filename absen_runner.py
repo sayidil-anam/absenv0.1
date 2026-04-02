@@ -1,4 +1,3 @@
-
 import json
 import os
 import sys
@@ -18,7 +17,6 @@ def load_cache() -> list[dict] | None:
     with open(CACHE_FILE, "r") as f:
         data = json.load(f)
     jadwal = data.get("jadwal", [])
-    # Convert tanggal string ke date object
     for mk in jadwal:
         if mk.get("tanggal"):
             try:
@@ -42,35 +40,31 @@ def kirim_notif(judul: str, pesan: str, topic: str):
 
 
 def main():
-    print(f"🕐 Waktu sekarang: {datetime.now(WIB).strftime('%A, %d-%m-%Y %H:%M')} WIB")
+    print(f" Waktu sekarang: {datetime.now(WIB).strftime('%A, %d-%m-%Y %H:%M')} WIB")
 
-    # Ambil kredensial dari environment
     npm = os.getenv("NPM")
     password = os.getenv("PASSWORD")
     ntfy_topic = os.getenv("NTFY_TOPIC", "")
 
     if not npm or not password:
-        print("❌ NPM atau PASSWORD tidak ditemukan di environment.")
+        print(" NPM atau PASSWORD tidak ditemukan di environment.")
         sys.exit(1)
 
-    # Baca cache jadwal
     jadwal = load_cache()
     if not jadwal:
         kirim_notif("Absen ERROR", "jadwal_cache.json tidak ditemukan.", ntfy_topic)
         sys.exit(1)
 
-    # Cek jadwal hari ini
     jadwal_hari_ini = get_jadwal_hari_ini(jadwal)
     if not jadwal_hari_ini:
-        print("ℹ️  Tidak ada jadwal kuliah hari ini. Skip.")
+        print("  Tidak ada jadwal kuliah hari ini. Skip.")
         kirim_notif("Tidak Ada Jadwal", "Bot berjalan, tidak ada MK hari ini.", ntfy_topic)
         sys.exit(0)
 
-    print(f"📚 Jadwal hari ini ({len(jadwal_hari_ini)} sesi):")
+    print(f" Jadwal hari ini ({len(jadwal_hari_ini)} sesi):")
     for mk in jadwal_hari_ini:
         print(f"   - {mk['nama_mk']} | {mk['jam']} | {mk['ruang']}")
 
-    # Import Selenium dan jalankan absen
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.by import By
@@ -93,31 +87,28 @@ def main():
     BASE_URL = "https://simkuliah.usk.ac.id"
 
     try:
-        # Login
-        print("\n🔐 Memulai login...")
+        print("\n Memulai login...")
         driver.get(BASE_URL)
         wait = WebDriverWait(driver, 10)
 
         wait.until(EC.presence_of_element_located((By.NAME, "username"))).send_keys(npm)
         driver.find_element(By.NAME, "password").send_keys(password)
 
-        # Solve CAPTCHA
         captcha_img = wait.until(EC.presence_of_element_located((By.ID, "captcha-img")))
         captcha_text = ocr.classification(captcha_img.screenshot_as_png).strip().replace(" ", "")
-        print(f"🔑 CAPTCHA terbaca: {captcha_text}")
+        print(f" CAPTCHA terbaca: {captcha_text}")
 
         driver.find_element(By.NAME, "captcha_answer").send_keys(captcha_text)
         wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))).click()
         time.sleep(3)
 
         if "login" in driver.current_url.lower():
-            print("❌ Login gagal! CAPTCHA mungkin salah terbaca.")
+            print(" Login gagal! CAPTCHA mungkin salah terbaca.")
             kirim_notif("Absen ERROR", "Login gagal, CAPTCHA salah terbaca.", ntfy_topic)
             sys.exit(1)
 
-        print("✅ Login berhasil!")
+        print(" Login berhasil!")
 
-        # Absen
         driver.get(f"{BASE_URL}/index.php/absensi")
         time.sleep(2)
 
@@ -137,21 +128,21 @@ def main():
                 time.sleep(3)
 
                 absen_berhasil += 1
-                print(f"✅ Absen #{absen_berhasil} berhasil!")
+                print(f" Absen {absen_berhasil} berhasil!")
 
             except Exception:
                 break
 
         if absen_berhasil == 0:
-            print("ℹ️  Tidak ada tombol absen yang tersedia.")
+            print("  Tidak ada tombol absen yang tersedia.")
             kirim_notif("Tidak Ada Jadwal", "Bot berjalan tapi tidak ada tombol absen.", ntfy_topic)
         else:
             pesan = f"{absen_berhasil} absensi berhasil dilakukan."
-            print(f"\n🎉 {pesan}")
+            print(f"\n {pesan}")
             kirim_notif("Absen Berhasil", pesan, ntfy_topic)
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         kirim_notif("Absen ERROR", f"Error: {e}", ntfy_topic)
         sys.exit(1)
 
