@@ -41,7 +41,7 @@ jobs:
       - name: 4. Install dependencies
         run: pip install selenium ddddocr python-dotenv
 
-      - name: 5. Jalankan absen.py
+      - name: 5. Jalankan absen_runner.py
         env:
           NPM: ${{ secrets.NPM }}
           PASSWORD: ${{ secrets.PASSWORD }}
